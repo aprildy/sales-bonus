@@ -5,11 +5,10 @@
  * @returns {number}
  */
 function calculateSimpleRevenue(purchase, _product) {
-   const { discount, sale_price, quantity } = purchase;
-   const decimalDiscount = discount / 100;
-   const fullPrice = sale_price * quantity;
+   const { sale_price, quantity } = purchase;
+   const discount = 1 - (purchase.discount / 100);
 
-   return fullPrice * (1 - decimalDiscount);
+   return sale_price * quantity * discount;
 }
 
 /**
@@ -75,6 +74,26 @@ function analyzeSalesData(data, options) {
     const productIndex = Object.fromEntries(data.products.map(product => [product.sku, product]));
 
     // @TODO: Расчет выручки и прибыли для каждого продавца
+    data.purchase_records.forEach(record => { // Чек
+        const seller = sellerIndex[record.seller_id]; // Продавец
+        seller.sales_count += 1;
+        seller.revenue += record.total_amount;
+
+        // Расчёт прибыли для каждого товара
+        record.items.forEach(item => {
+            const product = productIndex[item.sku]; // Товар
+            const cost = product.purchase_price * item.quantity;
+            const revenue = calculateRevenue(item, product);
+            const profit = revenue - cost;
+            seller.profit += profit;
+
+            // Учёт количества проданных товаров
+            if (!seller.products_sold[item.sku]) {
+                seller.products_sold[item.sku] = 0;
+            }
+            seller.products_sold[item.sku] += item.quantity;
+        });
+    });
 
     // @TODO: Сортировка продавцов по прибыли
 
