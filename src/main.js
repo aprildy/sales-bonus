@@ -5,7 +5,11 @@
  * @returns {number}
  */
 function calculateSimpleRevenue(purchase, _product) {
-   // @TODO: Расчет выручки от операции
+   const { discount, sale_price, quantity } = purchase;
+   const decimalDiscount = discount / 100;
+   const fullPrice = sale_price * quantity;
+
+   return fullPrice * (1 - decimalDiscount);
 }
 
 /**
